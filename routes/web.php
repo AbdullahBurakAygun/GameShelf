@@ -2,40 +2,50 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserGameController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Game;
+use App\Models\User;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/admin', function () {
-    $user = auth()->user();
-
-    if (! $user || $user->role !== 'admin') {
-        abort(403);
-    }
-
-    return view('admin.dashboard');
-})->middleware(['auth', 'verified'])->name('admin.dashboard');
-
-// Dashboard: rol bepaalt redirect
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
     if ($user->role === 'admin') {
-        return redirect()->route('admin.dashboard');
+        return redirect()->route('admin.dashboard'); 
     }
 
-    return redirect()->route('games.index'); // user page
+    return redirect()->route('games.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
-// Authenticated routes (games + profile)
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // User games CRUD
+    
+    Route::middleware('can:admin-only')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+
+           
+            Route::get('/', function () {
+               return view('admin.users.dashboard', [
+                'totalUsers'  => User::count(),
+                'totalAdmins' => User::where('role', 'admin')->count(),
+                'totalGames'  => Game::count(),
+                'latestUsers' => User::latest()->take(5)->get(),
+                ]);
+            })->name('dashboard');
+
+            
+            Route::resource('users', AdminUserController::class)->except(['show']);
+        });
+
+    
     Route::resource('games', UserGameController::class)->except(['show']);
 
-    // Profiel
+    
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

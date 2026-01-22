@@ -1,7 +1,11 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-2xl text-white leading-tight">
+            403 – Access denied
+        </h2>
+    </x-slot>
 
-@section('content')
-    <div class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center py-10">
         <div class="max-w-lg w-full bg-slate-900 border border-slate-800 rounded-xl p-8 text-center shadow-xl">
             <h1 class="text-3xl font-bold mb-4">Access denied</h1>
 
@@ -19,4 +23,4 @@
             </a>
         </div>
     </div>
-@endsection
+</x-app-layout>
